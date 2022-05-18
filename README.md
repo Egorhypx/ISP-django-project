@@ -1,1 +1,1 @@
-# ISP-django-project
+# Golubitsky Egor 053504
