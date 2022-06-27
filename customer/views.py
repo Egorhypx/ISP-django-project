@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, reverse
 from . import forms, models
 from django.db.models import Sum
@@ -11,6 +12,8 @@ from django.core.mail import send_mail
 from insurance import models as CMODEL
 from insurance import forms as CFORM
 from django.contrib.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 
 def customerclick_view(request):
@@ -35,6 +38,7 @@ def customer_signup_view(request):
             customer.save()
             my_customer_group = Group.objects.get_or_create(name='CUSTOMER')
             my_customer_group[0].user_set.add(user)
+            logger.info('Customer signed up')
         return HttpResponseRedirect('customerlogin')
     return render(request, 'customer/customersignup.html', context=mydict)
 
@@ -55,12 +59,14 @@ def customer_dashboard_view(request):
             customer=models.Customer.objects.get(user_id=request.user.id)).count(),
 
     }
+    logger.info('Customer is on dashboard')
     return render(request, 'customer/customer_dashboard.html', context=dict)
 
 
 def apply_policy_view(request):
     customer = models.Customer.objects.get(user_id=request.user.id)
     policies = CMODEL.Policy.objects.all()
+    logger.info("Policy was applied")
     return render(request, 'customer/apply_policy.html', {'policies': policies, 'customer': customer})
 
 
@@ -77,6 +83,7 @@ def apply_view(request, pk):
 def history_view(request):
     customer = models.Customer.objects.get(user_id=request.user.id)
     policies = CMODEL.PolicyRecord.objects.all().filter(customer=customer)
+    logger.info('Customer is on policy history')
     return render(request, 'customer/history.html', {'policies': policies, 'customer': customer})
 
 
@@ -91,11 +98,13 @@ def ask_question_view(request):
             question.customer = customer
             question.save()
             return redirect('question-history')
+    logger.info('Customer asked question')
     return render(request, 'customer/ask_question.html', {'questionForm': questionForm, 'customer': customer})
 
 
 def question_history_view(request):
     customer = models.Customer.objects.get(user_id=request.user.id)
     questions = CMODEL.Question.objects.all().filter(customer=customer)
+    logger.info('Customer is on question history')
     return render(request, 'customer/question_history.html', {'questions': questions, 'customer': customer})
 
